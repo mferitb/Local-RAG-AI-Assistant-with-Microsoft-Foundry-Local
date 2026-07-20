@@ -1,0 +1,21 @@
+Microsoft Foundry Local is a lightweight runtime that lets developers run
+AI models directly on their own machines — no cloud connection required.
+It supports a growing catalog of small, optimized models including
+language models, embedding models, and vision models.
+
+Key features of Foundry Local:
+- Fully offline: all inference runs on your local hardware.
+- OpenAI-compatible API: existing code using the OpenAI Python SDK can
+  be pointed at Foundry Local with minimal changes.
+- Model catalog: browse and download models via the command line
+  (foundry model list, foundry model download <name>).
+- Cross-platform: works on Windows, macOS, and Linux.
+
+Getting started:
+1. Install the Foundry Local runtime from https://github.com/microsoft/foundry
+2. Install the Python SDK: pip install foundry-local-sdk
+3. Download a model: foundry model download phi-3.5-mini
+4. Use the SDK to send prompts and receive completions locally.
+
+Foundry Local is ideal for privacy-sensitive applications, educational
+projects, and environments with limited or no internet access.

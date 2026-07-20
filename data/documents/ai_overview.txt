@@ -1,0 +1,23 @@
+Artificial Intelligence (AI) is a broad field of computer science focused on
+building systems that can perform tasks normally requiring human intelligence.
+These tasks include learning from data, recognizing patterns, making decisions,
+understanding natural language, and generating text or images.
+
+Machine Learning (ML) is a subset of AI.  Instead of being explicitly
+programmed with rules, ML algorithms learn from examples.  Given a large
+dataset, a model adjusts its internal parameters to minimize prediction
+errors.  Common approaches include supervised learning (labeled examples),
+unsupervised learning (finding structure without labels), and reinforcement
+learning (learning by trial and error with rewards).
+
+Deep Learning is a further subset of ML that uses neural networks with many
+layers (hence "deep").  Architectures like Convolutional Neural Networks
+(CNNs) excel at image recognition, while Transformers have revolutionized
+natural language processing.  Large Language Models (LLMs) such as GPT and
+Phi are Transformer-based models trained on vast amounts of text data.
+
+Retrieval-Augmented Generation (RAG) is a technique that enhances LLM
+responses by first retrieving relevant documents from a knowledge base and
+then feeding those documents as context to the model.  This reduces
+hallucinations, keeps answers grounded in real data, and allows the model
+to work with information it was not trained on.

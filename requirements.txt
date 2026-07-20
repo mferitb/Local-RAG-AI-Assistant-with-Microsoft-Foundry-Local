@@ -1,0 +1,4 @@
+# Core dependencies for the Local RAG Assistant
+foundry-local-sdk
+flask
+numpy
