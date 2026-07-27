@@ -1,37 +1,42 @@
 /**
- * script.js — Client-side logic for the Local RAG Assistant.
- *
- * Sends the user's question to the /ask endpoint via fetch(),
- * and renders both the question and the answer in the chat area
- * without a full-page reload.
+ * script.js — Client-side logic for the Personal AI Assistant.
  */
 
 document.addEventListener("DOMContentLoaded", () => {
-    const form        = document.getElementById("ask-form");
-    const input       = document.getElementById("question-input");
-    const chatArea    = document.getElementById("chat-area");
-    const askButton   = document.getElementById("ask-button");
-    const welcome     = document.getElementById("welcome-message");
-    const statusBadge = document.getElementById("status-badge");
+    const form         = document.getElementById("ask-form");
+    const input        = document.getElementById("question-input");
+    const chatArea     = document.getElementById("chat-area");
+    const askButton    = document.getElementById("ask-button");
+    const welcomePanel = document.getElementById("welcome-panel");
+    const topicBar     = document.getElementById("topic-bar");
 
+    // ── Quick topic chips ──────────────────────────────────────────────
+    topicBar.querySelectorAll(".topic-chip").forEach(chip => {
+        chip.addEventListener("click", () => {
+            const question = chip.dataset.q;
+            if (question) {
+                input.value = question;
+                form.requestSubmit();
+            }
+        });
+    });
+
+    // ── Form submit ────────────────────────────────────────────────────
     form.addEventListener("submit", async (event) => {
         event.preventDefault();
 
         const question = input.value.trim();
         if (!question) return;
 
-        // Hide welcome message on first interaction
-        if (welcome) {
-            welcome.style.display = "none";
+        // Hide welcome panel on first message
+        if (welcomePanel && !welcomePanel.classList.contains("hidden")) {
+            welcomePanel.classList.add("hidden");
         }
 
-        // Append the user's message bubble
         appendMessage("user", question);
         input.value = "";
         askButton.disabled = true;
-        setStatus("Thinking...", "loading");
 
-        // Show typing indicator
         const typingEl = appendTypingIndicator();
 
         try {
@@ -42,8 +47,6 @@ document.addEventListener("DOMContentLoaded", () => {
             });
 
             const data = await response.json();
-
-            // Remove typing indicator
             typingEl.remove();
 
             if (response.ok && data.answer) {
@@ -57,13 +60,14 @@ document.addEventListener("DOMContentLoaded", () => {
             appendMessage("bot", "Could not reach the server. Is it running?", true);
         } finally {
             askButton.disabled = false;
-            setStatus("Ready", "ready");
             input.focus();
         }
     });
 
+    // ── Helpers ────────────────────────────────────────────────────────
+
     /**
-     * Append a chat bubble to the chat area.
+     * Append a chat message to the chat area.
      * @param {"user"|"bot"} role
      * @param {string} text
      * @param {boolean} isError
@@ -72,66 +76,71 @@ document.addEventListener("DOMContentLoaded", () => {
         const wrapper = document.createElement("div");
         wrapper.classList.add("message", role);
 
-        const avatar = document.createElement("div");
-        avatar.classList.add("message-avatar");
-        avatar.textContent = role === "user" ? "You" : "AI";
+        const roleLabel = document.createElement("div");
+        roleLabel.classList.add("message-role");
+        roleLabel.textContent = role === "user" ? "You" : "Assistant";
 
-        const content = document.createElement("div");
-        content.classList.add("message-content");
-        if (isError) content.classList.add("error-text");
-        content.textContent = text;
+        const bubble = document.createElement("div");
+        bubble.classList.add("message-bubble");
+        if (isError) bubble.classList.add("error");
 
-        wrapper.appendChild(avatar);
-        wrapper.appendChild(content);
+        if (role === "bot" && !isError) {
+            // Render bot text with basic markdown-lite formatting
+            bubble.innerHTML = formatBotResponse(text);
+        } else {
+            bubble.style.whiteSpace = "pre-wrap";
+            bubble.textContent = text;
+        }
+
+        wrapper.appendChild(roleLabel);
+        wrapper.appendChild(bubble);
         chatArea.appendChild(wrapper);
-
-        // Auto-scroll to the latest message
         chatArea.scrollTop = chatArea.scrollHeight;
     }
 
     /**
-     * Show a typing indicator and return the DOM element so the
-     * caller can remove it later.
+     * Convert simple markdown-style patterns to HTML for bot responses.
+     * Handles **bold**, numbered lists, and bullet lists.
+     * @param {string} text
+     * @returns {string} HTML string
+     */
+    function formatBotResponse(text) {
+        // Escape HTML entities first
+        let html = text
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;");
+
+        // **bold**
+        html = html.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
+
+        // Line breaks
+        html = html.replace(/\n/g, "<br>");
+
+        return html;
+    }
+
+    /**
+     * Show a typing indicator in the chat area.
+     * @returns {HTMLElement} the wrapper element (so caller can remove it)
      */
     function appendTypingIndicator() {
         const wrapper = document.createElement("div");
         wrapper.classList.add("message", "bot");
 
-        const avatar = document.createElement("div");
-        avatar.classList.add("message-avatar");
-        avatar.textContent = "AI";
+        const roleLabel = document.createElement("div");
+        roleLabel.classList.add("message-role");
+        roleLabel.textContent = "Assistant";
 
-        const content = document.createElement("div");
-        content.classList.add("message-content");
-        content.innerHTML = `
-            <div class="typing-indicator">
-                <span></span><span></span><span></span>
-            </div>
-        `;
+        const bubble = document.createElement("div");
+        bubble.classList.add("message-bubble");
+        bubble.innerHTML = `<div class="typing-indicator"><span></span><span></span><span></span></div>`;
 
-        wrapper.appendChild(avatar);
-        wrapper.appendChild(content);
+        wrapper.appendChild(roleLabel);
+        wrapper.appendChild(bubble);
         chatArea.appendChild(wrapper);
         chatArea.scrollTop = chatArea.scrollHeight;
 
         return wrapper;
-    }
-
-    /**
-     * Update the status badge in the header.
-     * @param {string} text
-     * @param {"ready"|"loading"} state
-     */
-    function setStatus(text, state) {
-        statusBadge.innerHTML = `<span class="status-dot"></span> ${text}`;
-        if (state === "loading") {
-            statusBadge.style.color = "#facc15";
-            statusBadge.style.borderColor = "rgba(250, 204, 21, 0.2)";
-            statusBadge.style.background = "rgba(250, 204, 21, 0.08)";
-        } else {
-            statusBadge.style.color = "";
-            statusBadge.style.borderColor = "";
-            statusBadge.style.background = "";
-        }
     }
 });

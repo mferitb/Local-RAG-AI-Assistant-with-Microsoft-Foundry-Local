@@ -10,7 +10,7 @@ import os
 import sys
 import logging
 
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, Response, stream_with_context
 
 # Ensure the project root is on sys.path so that ``config`` and ``src``
 # can be imported regardless of where the user runs the script from.
@@ -46,7 +46,7 @@ def ask():
 
     Response
     --------
-    { "answer": "The model says ...", "sources": [...] }
+    { "answer": "..." }
     """
     from src.llm import answer_query
 
@@ -62,6 +62,7 @@ def ask():
     except Exception as e:
         logging.exception("Error answering query")
         return jsonify({"error": f"An error occurred: {str(e)}"}), 500
+
 
 
 # ---------------------------------------------------------------------------

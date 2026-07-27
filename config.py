@@ -20,14 +20,15 @@ DB_PATH = "data/rag.db"
 # ---------------------------------------------------------------------------
 # Document ingestion
 # ---------------------------------------------------------------------------
-CHUNK_SIZE = 500        # Maximum number of characters per chunk
-CHUNK_OVERLAP = 50      # Overlap between consecutive chunks (characters)
+CHUNK_SIZE = 400        # Maximum number of characters per chunk (keep small to fit model KV cache)
+CHUNK_OVERLAP = 40      # Overlap between consecutive chunks (characters)
 DOCUMENTS_DIR = "data/documents"
 
 # ---------------------------------------------------------------------------
 # Retrieval
 # ---------------------------------------------------------------------------
 TOP_K = 3               # Number of top chunks to retrieve for context
+MAX_TOKENS = 512        # Maximum tokens in the model's response (lower = faster)
 
 # ---------------------------------------------------------------------------
 # Flask server
