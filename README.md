@@ -1,129 +1,188 @@
-# Local RAG Assistant — Powered by Microsoft Foundry Local
+# Local RAG AI Assistant
 
-A fully offline, local document Q&A assistant that uses the
-**Retrieval-Augmented Generation (RAG)** pattern with
-[Microsoft Foundry Local](https://github.com/microsoft/foundry).
+An **offline, privacy-first** RAG (Retrieval-Augmented Generation) assistant that runs entirely on your device using [Foundry Local](https://github.com/microsoft/foundry-local) and **Phi-3.5 Mini**.
 
-Ask questions about your own documents and get AI-generated answers —
-**nothing leaves your machine**.
+Ask questions about your own documents — with zero internet connectivity required.
 
----
+## Architecture
 
-## Features
+Inspired by [leestott/local-rag](https://github.com/leestott/local-rag).
 
-- **Fully offline** — all model inference runs locally via Foundry Local.
-- **RAG pipeline** — retrieves the most relevant document chunks before
-  generating an answer, reducing hallucinations.
-- **Simple web UI** — a clean, dark-themed chat interface served by Flask.
-- **SQLite vector store** — lightweight, zero-config database for embeddings.
-
----
-
-## Prerequisites
-
-| Requirement           | Version / Notes                                      |
-| --------------------- | ---------------------------------------------------- |
-| Python                | 3.11 or newer                                        |
-| Microsoft Foundry Local | [Installation guide](https://github.com/microsoft/foundry) |
-| Models (downloaded)   | `phi-3.5-mini` (chat) and `qwen3-embedding-0.6b` (embeddings) |
-
-### Install Foundry Local & download models
-
-```bash
-# Follow the official installation guide for your OS:
-# https://github.com/microsoft/foundry
-
-# Then download the required models:
-foundry model download phi-3.5-mini
-foundry model download qwen3-embedding-0.6b
+```
+┌─────────────────────────────────────────────────────────┐
+│                    Browser UI (SSE)                     │
+│            Dark-themed chat + progress bar              │
+└──────────────────────┬──────────────────────────────────┘
+                       │ HTTP / SSE
+┌──────────────────────▼──────────────────────────────────┐
+│                Express Server (src/server.js)           │
+│  /api/status    ← SSE model init progress               │
+│  /api/chat      ← non-streaming chat                    │
+│  /api/chat/stream ← SSE token streaming                 │
+│  /api/docs      ← list knowledge base documents        │
+│  /api/upload    ← runtime document ingestion            │
+│  /api/health    ← health check                          │
+└──────────────────────┬──────────────────────────────────┘
+                       │
+        ┌──────────────┴──────────────────┐
+        │                                 │
+┌───────▼────────┐              ┌─────────▼────────┐
+│  ChatEngine    │              │  VectorStore     │
+│  Foundry Local │              │  SQLite + TF-IDF │
+│  Phi-3.5 Mini  │              │  Inverted Index  │
+└────────────────┘              └──────────────────┘
 ```
 
----
+## Tech Stack
+
+| Layer | Technology |
+|-------|-----------|
+| Runtime | Node.js 18+ |
+| Server | Express.js |
+| LLM | Phi-3.5 Mini via Foundry Local SDK |
+| Vector Store | SQLite + TF-IDF (better-sqlite3) |
+| UI | Vanilla HTML/CSS/JS (single file) |
 
 ## Quick Start
 
+### Prerequisites
+
+- [Node.js](https://nodejs.org/) 18 or higher
+- [Foundry Local](https://github.com/microsoft/foundry-local) installed and running
+
+### 1. Install dependencies
+
 ```bash
-# 1. Clone the repository
-git clone <your-repo-url>
-cd local-rag-assistant
-
-# 2. Create a virtual environment (recommended)
-python -m venv venv
-# On Windows:
-venv\Scripts\activate
-# On macOS / Linux:
-source venv/bin/activate
-
-# 3. Install dependencies
-pip install -r requirements.txt
-
-# 4. (Optional) Verify your Foundry Local setup
-python tests/test_hello_model.py
-
-# 5. Start the server
-python main.py
+npm install
 ```
 
-Then open **http://localhost:5000** in your browser.
+### 2. Add your documents
 
+Place markdown (`.md`) files in the `docs/` folder. Use YAML front-matter for metadata:
+
+```markdown
 ---
+id: my-document
+title: My Document Title
+category: technical
+---
+
+# My Document
+
+Your content here...
+```
+
+### 3. Ingest documents
+
+```bash
+npm run ingest
+```
+
+This reads all `.md` files from `docs/`, splits them into chunks, builds TF-IDF vectors, and stores them in `data/rag.db`.
+
+### 4. Start the server
+
+```bash
+npm start
+```
+
+Or in watch mode (auto-restarts on file changes):
+
+```bash
+npm run dev
+```
+
+Open [http://127.0.0.1:3000](http://127.0.0.1:3000) in your browser.
 
 ## Project Structure
 
 ```
-local-rag-assistant/
-├── main.py                # Flask entry point
-├── config.py              # Model names, DB path, tuneable constants
-├── requirements.txt       # Python dependencies
-├── data/
-│   ├── documents/         # Put your .txt source documents here
-│   └── rag.db             # SQLite database (auto-created)
+├── docs/                    # Your markdown knowledge base
+│   ├── 01-productivity-methods.md
+│   ├── 02-stress-and-wellness.md
+│   └── 03-focus-and-deep-work.md
+│
 ├── src/
-│   ├── __init__.py
-│   ├── db.py              # Database connection & schema
-│   ├── ingest.py          # Document chunking & embedding (skeleton)
-│   ├── retrieval.py       # Semantic search over embeddings (skeleton)
-│   └── llm.py             # Chat completion via Foundry Local (skeleton)
-├── web/
-│   ├── templates/
-│   │   └── index.html     # Chat UI
-│   └── static/
-│       ├── style.css      # Dark-themed styling
-│       └── script.js      # Client-side fetch logic
-└── tests/
-    └── test_hello_model.py  # SDK smoke test
+│   ├── server.js            # Express server + API endpoints
+│   ├── chatEngine.js        # Foundry Local SDK + RAG pipeline
+│   ├── vectorStore.js       # SQLite TF-IDF vector store
+│   ├── chunker.js           # Text chunking + front-matter parser
+│   ├── prompts.js           # System prompts (full + compact)
+│   ├── ingest.js            # Document ingestion script
+│   └── config.js            # Configuration
+│
+├── public/
+│   └── index.html           # Web UI (single file, inline CSS+JS)
+│
+├── data/
+│   └── rag.db               # SQLite database (generated)
+│
+└── package.json
 ```
 
----
+## API Reference
 
-## How It Works (RAG Pipeline)
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/health` | Health check + model status |
+| GET | `/api/status` | SSE stream of model init progress |
+| GET | `/api/docs` | List all ingested documents |
+| POST | `/api/chat` | Non-streaming chat |
+| POST | `/api/chat/stream` | SSE streaming chat |
+| POST | `/api/upload` | Upload and ingest a markdown document |
 
-1. **Ingest** — Text documents are split into chunks, each chunk is
-   embedded using `qwen3-embedding-0.6b`, and stored in SQLite.
-2. **Retrieve** — When a user asks a question, the query is embedded
-   and compared against stored chunks via cosine similarity. The top-K
-   most relevant chunks are selected.
-3. **Generate** — The retrieved chunks are passed as context to
-   `phi-3.5-mini`, which generates a grounded answer.
+### Chat request body
 
-> **Note:** The ingestion and retrieval modules are currently skeletons
-> with `TODO` placeholders. They will be implemented in upcoming weeks.
+```json
+{
+  "message": "How do I use the Pomodoro technique?",
+  "history": [],
+  "compact": false
+}
+```
 
----
+### Chat response
 
-## Next Steps
+```json
+{
+  "answer": "The Pomodoro technique involves...",
+  "sources": [
+    {
+      "doc_id": "productivity-methods",
+      "title": "Productivity Methods",
+      "category": "productivity",
+      "score": 0.847,
+      "snippet": "The Pomodoro Technique is a time management method..."
+    }
+  ]
+}
+```
 
-| Week | Task                                                     | File(s)                          |
-| ---- | -------------------------------------------------------- | -------------------------------- |
-| 3    | Implement `split_text()` and `embed_text()`              | `src/ingest.py`                  |
-| 3    | Implement `cosine_similarity()` and `get_top_chunks()`   | `src/retrieval.py`               |
-| 3    | Implement `build_prompt()` and wire up `answer_query()`  | `src/llm.py`                     |
-| 4    | Add PDF / DOCX support to the ingestion pipeline         | `src/ingest.py`                  |
-| 4    | Improve chunking (sentence-aware splitting)              | `src/ingest.py`                  |
-| 5    | Add source citations to the UI                           | `web/`, `src/llm.py`            |
+## Features
 
----
+- 🔒 **100% Offline** — no data leaves your machine
+- ⚡ **Streaming responses** — tokens appear as they generate
+- 📡 **Live progress** — watch the model initialize in real-time
+- 📄 **Runtime upload** — add documents without restarting
+- 🔋 **Edge/Compact mode** — shorter prompts for NPU-constrained devices
+- 📊 **Source citations** — collapsible source references per answer
+- 🌙 **Dark UI** — field-ready dark theme
+
+## Configuration
+
+Edit `src/config.js`:
+
+```js
+export const config = {
+  model: "phi-3.5-mini",   // Foundry Local model alias
+  chunkSize: 200,           // tokens per chunk
+  chunkOverlap: 25,         // overlap between chunks
+  topK: 3,                  // context chunks per query
+  port: 3000,
+  host: "127.0.0.1",
+};
+```
 
 ## License
 
-This project is for educational purposes (summer school).
+MIT

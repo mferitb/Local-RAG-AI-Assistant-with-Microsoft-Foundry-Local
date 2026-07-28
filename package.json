@@ -1,0 +1,30 @@
+{
+  "name": "local-rag-ai-assistant",
+  "version": "1.0.0",
+  "description": "Offline RAG-powered AI assistant using Foundry Local, Phi-3.5 Mini, and SQLite vector store",
+  "type": "module",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "ingest": "node src/ingest.js"
+  },
+  "dependencies": {
+    "sql.js": "^1.12.0",
+    "express": "^4.18.2",
+    "foundry-local-sdk": "latest"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "keywords": [
+    "rag",
+    "local-ai",
+    "foundry-local",
+    "offline",
+    "phi-3",
+    "sqlite"
+  ],
+  "author": "",
+  "license": "MIT"
+}
