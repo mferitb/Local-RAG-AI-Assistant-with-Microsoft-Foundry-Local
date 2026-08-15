@@ -183,6 +183,49 @@ export const config = {
 };
 ```
 
+## References
+
+### Blog Post
+
+| Title | Link |
+|-------|------|
+| **Building Your First Local RAG Application with Foundry Local** — Microsoft Tech Community | [techcommunity.microsoft.com](https://techcommunity.microsoft.com/blog/azuredevcommunityblog/building-your-first-local-rag-application-with-foundry-local/4501968) |
+
+---
+
+### Core Technologies
+
+| Technology | Description | Link |
+|------------|-------------|------|
+| **Foundry Local** | Microsoft'un yerel AI model çalıştırma platformu | [GitHub](https://github.com/microsoft/foundry-local) · [Docs](https://learn.microsoft.com/en-us/azure/ai-foundry/foundry-local/overview) |
+| **Foundry Local SDK** | Node.js SDK — model yönetimi ve inference | [npm](https://www.npmjs.com/package/foundry-local-sdk) |
+| **Phi-3.5 Mini** | Microsoft'un hafif, yüksek performanslı dil modeli | [Model Card](https://huggingface.co/microsoft/Phi-3.5-mini-instruct) |
+| **Node.js** | JavaScript çalışma zamanı (≥ 18) | [nodejs.org](https://nodejs.org/) |
+| **Express.js** | Minimal web framework / REST API | [expressjs.com](https://expressjs.com/) |
+| **sql.js** | WebAssembly tabanlı SQLite — vektör deposu | [GitHub](https://github.com/sql-js/sql.js) |
+
+---
+
+### Concepts & Techniques
+
+| Concept | Description | Link |
+|---------|-------------|------|
+| **RAG (Retrieval-Augmented Generation)** | Belge tabanlı LLM sorgulama mimarisi | [Paper (Lewis et al., 2020)](https://arxiv.org/abs/2005.11401) |
+| **TF-IDF** | Kelime önem skoru algoritması (vektör arama) | [Wikipedia](https://en.wikipedia.org/wiki/Tf%E2%80%93idf) |
+| **SSE (Server-Sent Events)** | Token streaming için tek yönlü HTTP event akışı | [MDN Docs](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events) |
+
+---
+
+### Related Projects
+
+| Project | Description | Link |
+|---------|-------------|------|
+| leestott/local-rag | Bu projenin ilham aldığı kaynak | [GitHub](https://github.com/leestott/local-rag) |
+| LlamaIndex | Python/TS RAG framework | [llamaindex.ai](https://www.llamaindex.ai/) |
+| Ollama | Yerel model çalıştırma alternatifi | [ollama.com](https://ollama.com/) |
+
+---
+
 ## License
 
 MIT
